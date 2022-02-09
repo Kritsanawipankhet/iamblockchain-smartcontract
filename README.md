@@ -9,8 +9,8 @@ First, run the development server:
 npm install
 ```
 - Setting config in truffle-config.js 
-
-```bash
+config you local network blockchain if you using ganache
+```javascript
 networks: {
     development: {
       host: "127.0.0.1", // Localhost (default: none)
@@ -22,6 +22,7 @@ networks: {
 When you need deploy to mainnet , testnet follow this way:
 ```bash
 touch .secret && echo “(mnemonic code,seed phrase,seed words)” > .secret 
+## mnemonic "inmate surprise witness aerobic genius mean excess finger zebra private link goddess"
 ```
 and config network provider as you want, this example for ropsten network 
 ```javascript
@@ -38,7 +39,11 @@ ropsten: {
       // skipDryRun: true     // Skip dry run before migrations? (default: false for public nets )
     },
 ```
-
+## Deploy
+``` bash
+truffle compile
+truffle migrate --network development # development , ropsten 
+```
 ## Learn More
 To learn more about smartcontract, take a look at the following resources:
 - [Learn Solidity](https://docs.soliditylang.org/en/v0.8.11/) - learn about solidity language.
