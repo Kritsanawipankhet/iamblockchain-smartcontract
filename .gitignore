@@ -351,3 +351,5 @@ MigrationBackup/
 
 
 .secret
+.vscode
+.DS_Store
