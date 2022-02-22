@@ -46,6 +46,7 @@ contract IAM {
         string memory _client_homepage,
         string memory _client_uri
     ) public {
+        require(!isClient(_client_id), "Client already exists!");
         clients[_client_id] = Clients({
             client_id: _client_id,
             client_name: _client_name,
