@@ -14,9 +14,28 @@ library Strings {
     bytes16 private constant _HEX_SYMBOLS = "0123456789abcdef";
 
     /**
+     * @dev Converts a bytes` to its ASCII `string` decimal representation.
+     */
+
+    function toString(bytes memory data) public pure returns (string memory) {
+        bytes memory buffer = new bytes(2 + data.length * 2);
+        buffer[0] = "0";
+        buffer[1] = "x";
+        for (uint256 i = 0; i < data.length; i++) {
+            buffer[2 + i * 2] = _HEX_SYMBOLS[uint256(uint8(data[i] >> 4))];
+            buffer[3 + i * 2] = _HEX_SYMBOLS[uint256(uint8(data[i] & 0x0f))];
+        }
+        return string(buffer);
+    }
+
+    /**
      * @dev Converts a `uint256` to its ASCII `string` decimal representation.
      */
-    function toString(uint256 _value) internal pure returns (string memory) {
+    function uint256ToString(uint256 _value)
+        internal
+        pure
+        returns (string memory)
+    {
         if (_value == 0) {
             return "0";
         }

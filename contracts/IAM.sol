@@ -3,12 +3,9 @@ pragma solidity ^0.8.11;
 
 // We need to import the helper functions from the contract that we copy/pasted.
 import {Base64} from "./libraries/Base64.sol";
-
-//import "./libraries/String.sol";
+import {Strings} from "./libraries/Strings.sol";
 
 contract IAM {
-    //using Strings for string;
-
     modifier clientOwner(string memory _client_id) {
         require(
             clients[_client_id].client_owner == msg.sender,
@@ -24,8 +21,9 @@ contract IAM {
         string client_logo; // svg , png , jpeg encode Base64 to string
         string client_description;
         string client_homepage;
-        string client_uri;
+        string redirect_uri;
         address client_owner;
+        uint256 update_date;
         uint256 create_date;
     }
 
@@ -44,7 +42,7 @@ contract IAM {
         string memory _client_logo,
         string memory _client_description,
         string memory _client_homepage,
-        string memory _client_uri
+        string memory _redirect_uri
     ) public {
         require(!isClient(_client_id), "Client already exists!");
         clients[_client_id] = Clients({
@@ -54,8 +52,9 @@ contract IAM {
             client_logo: _client_logo,
             client_description: _client_description,
             client_homepage: _client_homepage,
-            client_uri: _client_uri,
+            redirect_uri: _redirect_uri,
             client_owner: msg.sender,
+            update_date: block.timestamp,
             create_date: block.timestamp
         });
         emit AddedClient(_client_id, msg.sender, block.timestamp);
@@ -80,39 +79,25 @@ contract IAM {
                 : false;
     }
 
-    function getClient(string memory _client_id)
+    function getClientByOwner(string memory _client_id)
         public
         view
-        returns (
-            string memory,
-            string memory,
-            string memory,
-            string memory,
-            string memory,
-            string memory
-        )
+        clientOwner(_client_id)
+        returns (Clients memory)
     {
         require(bytes(_client_id).length != 0, "Client id is empty !");
         require(isClient(_client_id), "Invalid client id !");
-        Clients memory client = clients[_client_id];
-        return (
-            client.client_name,
-            client.client_secret,
-            client.client_logo,
-            client.client_description,
-            client.client_homepage,
-            client.client_uri
-        );
+        return clients[_client_id];
     }
 
-    function getClientJsonBase64(string memory _client_id)
+    function getClientPublicJson(string memory _client_id)
         public
         view
         returns (string memory)
     {
         require(bytes(_client_id).length != 0, "Client id is empty !");
         require(isClient(_client_id), "Invalid client id !");
-        string memory json = Base64.encode(
+        string memory client = Base64.encode(
             bytes(
                 string(
                     abi.encodePacked(
@@ -124,11 +109,35 @@ contract IAM {
                         '",',
                         '"client_logo": "',
                         clients[_client_id].client_logo,
-                        '"}'
+                        '",',
+                        '"client_description": "',
+                        clients[_client_id].client_description,
+                        '",',
+                        '"client_homepage": "',
+                        clients[_client_id].client_homepage,
+                        '",',
+                        '"redirect_uri": "',
+                        clients[_client_id].redirect_uri,
+                        '",',
+                        '"client_owner": "',
+                        Strings.toString(
+                            abi.encodePacked(clients[_client_id].client_owner)
+                        ),
+                        '",',
+                        '"update_date": ',
+                        Strings.uint256ToString(
+                            clients[_client_id].update_date
+                        ),
+                        ",",
+                        '"create_date": ',
+                        Strings.uint256ToString(
+                            clients[_client_id].create_date
+                        ),
+                        "}"
                     )
                 )
             )
         );
-        return string(abi.encodePacked("data:application/json;base64,", json));
+        return string(abi.encodePacked(client));
     }
 }
