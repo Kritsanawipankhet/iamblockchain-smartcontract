@@ -23,17 +23,89 @@ contract IAM {
         string client_homepage;
         string redirect_uri;
         address client_owner;
+        bool is_active;
         uint256 update_date;
         uint256 create_date;
     }
 
-    event AddedClient(
+    event AddClient(
         string _client_id,
         address _client_owner,
         uint256 _create_date
     );
 
+    event EditClient(
+        string _client_id,
+        address _client_owner,
+        uint256 _update_date
+    );
+
+    event DelClient(
+        string _client_id,
+        address _client_owner,
+        uint256 _del_date
+    );
+
+    event grantAuthorize(
+        string _client_id,
+        address _client_user,
+        uint256 _create_date
+    );
+
+    struct Authorizations {
+        string authorization_code;
+        Clients client;
+        string[] scopes;
+        string redirect_uri;
+        address client_user;
+        uint256 expires_at;
+        bool is_active;
+        uint256 create_date;
+    }
+
+    struct Tokens {
+        Authorizations authorization;
+        string access_token;
+        uint256 access_token_expires_at;
+        string refresh_token;
+        uint256 refresh_token_expires_at;
+        Clients client;
+        address client_user;
+        bool is_active;
+        uint256 create_date;
+    }
+
     mapping(string => Clients) public clients;
+    mapping(string => Authorizations) public authorizations;
+    mapping(string => Tokens) public tokens;
+
+    function createAuthorize(
+        string memory _client_id,
+        string memory _authorization_code,
+        string[] memory _scopes,
+        string memory _redirect_uri,
+        uint256 _expiration_period // unit seconds
+    ) public {
+        require(isClient(_client_id), "Invalid client id !");
+        authorizations[_authorization_code] = Authorizations({
+            authorization_code: _authorization_code,
+            client: clients[_client_id],
+            scopes: _scopes,
+            redirect_uri: _redirect_uri,
+            client_user: msg.sender,
+            expires_at: block.timestamp + _expiration_period,
+            is_active: true,
+            create_date: block.timestamp
+        });
+    }
+
+    function getGrantAuthorize(string memory _authorization_code)
+        public
+        view
+        returns (Authorizations memory)
+    {
+        return authorizations[_authorization_code];
+    }
 
     function createClient(
         string memory _client_id,
@@ -54,10 +126,11 @@ contract IAM {
             client_homepage: _client_homepage,
             redirect_uri: _redirect_uri,
             client_owner: msg.sender,
+            is_active: true,
             update_date: block.timestamp,
             create_date: block.timestamp
         });
-        emit AddedClient(_client_id, msg.sender, block.timestamp);
+        emit AddClient(_client_id, msg.sender, block.timestamp);
     }
 
     function deleteClient(string memory _client_id)
@@ -139,5 +212,12 @@ contract IAM {
             )
         );
         return string(abi.encodePacked(client));
+    }
+
+    function isExpire(uint256 _expires_at) public view returns (bool) {
+        if (block.timestamp > _expires_at) {
+            return true;
+        }
+        return false;
     }
 }
