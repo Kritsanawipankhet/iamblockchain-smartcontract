@@ -93,7 +93,7 @@ contract IAM {
             scopes: _scopes,
             redirect_uri: _redirect_uri,
             client_user: msg.sender,
-            expires_at: block.timestamp + _expiration_period,
+            expires_at: block.timestamp + _expiration_period, // create expire time
             is_active: true,
             create_date: block.timestamp
         });
